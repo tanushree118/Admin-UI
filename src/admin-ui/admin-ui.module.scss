@@ -1,0 +1,63 @@
+.tableRow {
+  .tableHeaders {
+    font-weight: 600;
+  }
+  .tableCell {
+    padding: 11px;
+  }
+}
+
+.tableFooter {
+  padding: 4px;
+  display: flex;
+  height: 35px;
+  margin: 13px;
+  .button {
+    border-radius: 31px;
+    background-color: rgb(223, 21, 55);
+    color: white;
+    text-transform: capitalize;
+    &:hover {
+      background-color: rgb(238, 15, 52);
+    }
+  }
+  .pagination {
+    width: 87%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+}
+
+.searchBar {
+  width: 100%;
+}
+.row {
+  .tableCell {
+    padding: 11px;
+  }
+  .actionCell {
+    display: flex;
+    align-items: center;
+    height: 60px;
+  }
+  .highlightedRow {
+    background-color: rgb(245, 245, 245);
+  }
+  .roleText {
+    text-transform: capitalize;
+  }
+  .deleteIcon {
+    fill: red;
+    width: 25px;
+  }
+  .editIcon {
+    width: 25px;
+    margin-right: 8px;
+  }
+}
+@media only screen and (max-width: 600px) {
+  .adminTable {
+    display: table;
+  }
+}
