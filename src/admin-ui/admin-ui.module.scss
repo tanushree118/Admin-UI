@@ -72,4 +72,11 @@
       width: 100%;
     }
   }
+  .tableRow {
+    .tableCell {
+      .ascOrder {
+        display: none;
+      }
+    }
+  }
 }
