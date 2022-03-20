@@ -5,10 +5,16 @@
   "dependencies": {
     "@emotion/react": "^11.7.1",
     "@emotion/styled": "^11.6.0",
+    "@mui/icons-material": "^5.5.1",
     "@mui/material": "^5.2.7",
     "@testing-library/jest-dom": "^5.16.1",
     "@testing-library/react": "^12.1.2",
     "@testing-library/user-event": "^13.5.0",
+    "@types/jest": "^27.4.0",
+    "enzyme": "^3.11.0",
+    "enzyme-adapter-react-16": "^1.15.6",
+    "jest": "^27.4.7",
+    "node-fetch": "^3.2.0",
     "react": "^17.0.2",
     "react-dom": "^17.0.2",
     "react-scripts": "5.0.0",
@@ -18,8 +24,10 @@
   "scripts": {
     "start": "react-scripts start",
     "build": "react-scripts build",
-    "test": "react-scripts test",
-    "eject": "react-scripts eject"
+    "eject": "react-scripts eject",
+    "test": "jest",
+    "test:watch": "jest --watch",
+    "test:coverage": "jest --coverage --colors"
   },
   "eslintConfig": {
     "extends": [
@@ -40,8 +48,25 @@
     ]
   },
   "devDependencies": {
+    "@babel/plugin-transform-runtime": "^7.16.10",
     "@svgr/webpack": "^6.2.0",
+    "@wojtekmaj/enzyme-adapter-react-17": "^0.6.6",
     "webpack": "^5.65.0",
     "webpack-cli": "^4.9.1"
+  },
+  "jest": {
+    "testEnvironment": "jsdom",
+    "verbose": true,
+    "transform": {
+      "\\.[jt]sx?$": "babel-jest"
+    },
+    "moduleNameMapper": {
+      "\\.svg": "<rootDir>/__mocks__/svg.js",
+      "^.+\\.(css|less|scss)$": "babel-jest"
+    },
+    "moduleFileExtensions": [
+      "js",
+      "jsx"
+    ]
   }
 }

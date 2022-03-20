@@ -31,3 +31,12 @@
     margin-right: 21px;
   }
 }
+
+@media only screen and (max-width: 610px) {
+  .pagination {
+    .button,
+    .buttonSelected {
+      margin-right: 14px;
+    }
+  }
+}

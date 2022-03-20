@@ -10,12 +10,14 @@ import {
   TextField,
 } from "@mui/material";
 import React, { useState } from "react";
-import { ReactComponent as DeleteIcon } from "../icons/deleteIcon.svg";
-import { ReactComponent as EditIcon } from "../icons/editIcon.svg";
-import { ReactComponent as TickIcon } from "../icons/tickIcon.svg";
-import { ReactComponent as CrossIcon } from "../icons/crossIcon.svg";
+import DeleteIcon from "@mui/icons-material/DeleteOutline";
+import EditIcon from "@mui/icons-material/Edit";
+import DoneIcon from "@mui/icons-material/Done";
+import ClearIcon from "@mui/icons-material/Clear";
+import ArrowUpwardIcon from "@mui/icons-material/ArrowUpward";
+import ArrowDownwardIcon from "@mui/icons-material/ArrowDownward";
 import styles from "./admin-ui.module.scss";
-import TablePagination from "../table-pagination/index.jsx";
+import TablePagination from "../table-pagination";
 
 const columns = [
   {
@@ -47,14 +49,15 @@ const AdminUITable = ({
   setPage,
   tableData,
   setTableData,
-  setEditedTableData,
-  isActionDisabled,
+  filteredTableData,
+  globalSelected,
+  setGlobalSelected,
+  searchText,
 }) => {
-  const [globalSelected, setGlobalSelected] = useState(false);
-  const [editAction, setEditAction] = useState({ id: "", edit: false });
+  const [editAction, setEditAction] = useState({ id: "" });
   const [newRowValues, setNewRowValues] = useState(defaultTextFieldValues);
   const rowsPerPage = 10;
-  const lastPageCount = tableData?.length % rowsPerPage;
+  const lastPageCount = filteredTableData?.length % rowsPerPage;
   const handleChangePage = (event, newPage) => {
     setPage(newPage);
     let count = 0;
@@ -63,7 +66,7 @@ const AdminUITable = ({
       i < newPage * rowsPerPage + rowsPerPage;
       i++
     ) {
-      if (tableData[i]?.checked) {
+      if (filteredTableData[i]?.checked) {
         count++;
       }
     }
@@ -74,7 +77,7 @@ const AdminUITable = ({
     if (
       count === rowsPerPage ||
       (count === lastPageCount &&
-        newPage * rowsPerPage + rowsPerPage > tableData.length)
+        newPage * rowsPerPage + rowsPerPage > filteredTableData.length)
     ) {
       setGlobalSelected(true);
     } else {
@@ -88,7 +91,7 @@ const AdminUITable = ({
   */
   const handleGlobalSelect = () => {
     setGlobalSelected(!globalSelected);
-    let updatedTableData = tableData?.map((ele, index) => {
+    let updatedTableData = filteredTableData?.map((ele, index) => {
       if (
         index === page * rowsPerPage ||
         (index > page * rowsPerPage && index < page * rowsPerPage + rowsPerPage)
@@ -98,8 +101,21 @@ const AdminUITable = ({
         return { ...ele };
       }
     });
-    setTableData(updatedTableData);
+    if (searchText) {
+      let updatedFilteredTableData = tableData?.map((ele) => {
+        let temp = updatedTableData?.filter((row) => row.id === ele.id);
+        if (temp?.length > 0) {
+          return temp[0];
+        } else {
+          return ele;
+        }
+      });
+      setTableData(updatedFilteredTableData);
+    } else {
+      setTableData(updatedTableData);
+    }
   };
+
   const handleRowSelect = (id) => {
     let updatedTableData = tableData?.map((ele) =>
       ele.id === id ? { ...ele, checked: !ele.checked } : { ...ele }
@@ -111,20 +127,20 @@ const AdminUITable = ({
       i < page * rowsPerPage + rowsPerPage;
       i++
     ) {
-      if (tableData[i]?.checked) {
+      if (filteredTableData[i]?.checked) {
         count++;
       }
     }
     if (
       count === rowsPerPage ||
       (count === lastPageCount &&
-        page * rowsPerPage + rowsPerPage > tableData.length)
+        page * rowsPerPage + rowsPerPage > filteredTableData?.length)
     ) {
       setGlobalSelected(false);
     } else if (
       count === rowsPerPage - 1 ||
       (count === lastPageCount - 1 &&
-        page * rowsPerPage + rowsPerPage > tableData.length)
+        page * rowsPerPage + rowsPerPage > filteredTableData?.length)
     ) {
       if (!rowToBeChanged[0].checked) {
         setGlobalSelected(true);
@@ -132,27 +148,20 @@ const AdminUITable = ({
     }
     setTableData(updatedTableData);
   };
+
   const handleGlobalDelete = () => {
     let updatedTableData = tableData?.filter((ele) => !ele.checked);
     setTableData(updatedTableData);
-    setEditedTableData(updatedTableData);
     setGlobalSelected(false);
   };
 
   const deleteRow = (id) => {
-    if (isActionDisabled) {
-      return;
-    }
-    let updatedTableData = tableData?.filter((ele) => !(ele.id === id));
+    let updatedTableData = tableData?.filter((ele) => (ele.id !== id));
     setTableData(updatedTableData);
-    setEditedTableData(updatedTableData);
   };
 
   const triggerEditAction = (id) => {
-    if (isActionDisabled) {
-      return;
-    }
-    setEditAction({ id: id, edit: !editAction.edit });
+    setEditAction({ id: id});
     const rowToEdit = tableData?.filter((row) => row.id === id);
     let updatedTextFieldValue = {
       name: rowToEdit[0].name,
@@ -185,14 +194,28 @@ const AdminUITable = ({
       }
     });
     setTableData(updatedTableData);
-    setEditedTableData(updatedTableData);
-    setEditAction({ id: "", editAction: false });
+    setEditAction({ id: "" });
   };
 
   const resetRow = () => {
-    setEditAction({ id: "", editAction: false });
+    setEditAction({ id: "" });
   };
 
+  const sortTableOnAscOrder = (columnId) => {
+    const columnToBeSorted = columnId;
+    let updatedTableData = tableData?.sort((a, b) => {
+      return a[columnToBeSorted].localeCompare(b[columnToBeSorted]);
+    });
+    setTableData([...updatedTableData]);
+  };
+
+  const sortTableOnDescOrder = (columnId) => {
+    const columnToBeSorted = columnId;
+    let updatedTableData = tableData?.sort((a, b) => {
+      return b[columnToBeSorted].localeCompare(a[columnToBeSorted]);
+    });
+    setTableData([...updatedTableData]);
+  };
   return (
     <div>
       <Table>
@@ -202,7 +225,6 @@ const AdminUITable = ({
               <Checkbox
                 checked={globalSelected}
                 onChange={handleGlobalSelect}
-                disabled={isActionDisabled}
               />
             </TableCell>
             {columns.map((ele, index) => (
@@ -211,12 +233,22 @@ const AdminUITable = ({
                 className={`${styles.tableHeaders} ${styles.tableCell}`}
               >
                 {ele.label}
+                {ele.id !== "actions" && (
+                  <>
+                    <Button className={styles.ascOrder} onClick={() => sortTableOnAscOrder(ele.id)}>
+                      <ArrowUpwardIcon />
+                    </Button>
+                    <Button className={styles.ascOrder} onClick={() => sortTableOnDescOrder(ele.id)}>
+                      <ArrowDownwardIcon />
+                    </Button>
+                  </>
+                )}
               </TableCell>
             ))}
           </TableRow>
         </TableHead>
         <TableBody className={styles.row}>
-          {tableData
+          {filteredTableData
             ?.slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage)
             .map((row) => (
               <TableRow
@@ -229,12 +261,12 @@ const AdminUITable = ({
                     onChange={() => {
                       handleRowSelect(row.id);
                     }}
-                    disabled={isActionDisabled}
                   />
                 </TableCell>
+                {/* {viewRowInEditMode(row)} */}
                 {columns?.map((ele, index) => {
                   if (ele.id !== "actions") {
-                    if (row.id === editAction.id && editAction.edit) {
+                    if (row.id === editAction.id) {
                       return (
                         <TableCell
                           key={index}
@@ -267,7 +299,7 @@ const AdminUITable = ({
                 <TableCell
                   className={`${styles.tableCell} ${styles.actionCell}`}
                 >
-                  {!(row.id === editAction.id && editAction.edit) ? (
+                  {row.id !== editAction.id ? (
                     <>
                       <EditIcon
                         className={styles.editIcon}
@@ -280,13 +312,13 @@ const AdminUITable = ({
                     </>
                   ) : (
                     <>
-                      <TickIcon
+                      <DoneIcon
                         className={styles.editIcon}
                         onClick={() => editRow(row.id)}
                       />
-                      <CrossIcon
+                      <ClearIcon
                         className={styles.deleteIcon}
-                        onClick={() => resetRow(row.id)}
+                        onClick={() => resetRow()}
                       />
                     </>
                   )}
@@ -296,21 +328,15 @@ const AdminUITable = ({
         </TableBody>
       </Table>
       <Box className={styles.tableFooter}>
-        <Button
-          className={styles.button}
-          onClick={handleGlobalDelete}
-          disabled={isActionDisabled}
-        >
+        <Button className={styles.button} onClick={handleGlobalDelete}>
           Delete Selected
         </Button>
         <Box className={styles.pagination}>
           <TablePagination
-            count={tableData?.length}
+            count={filteredTableData?.length}
             rowsPerPage={rowsPerPage}
-            page={page}
+            selectedPage={page}
             onPageChange={handleChangePage}
-            showFirstButton={true}
-            showLastButton={true}
           />
         </Box>
       </Box>

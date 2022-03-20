@@ -4,6 +4,11 @@
   }
   .tableCell {
     padding: 11px;
+    .ascOrder {
+      min-width: 0;
+      padding: 0;
+      margin-left: 5px;
+    }
   }
 }
 
@@ -59,5 +64,12 @@
 @media only screen and (max-width: 600px) {
   .adminTable {
     display: table;
+  }
+  .tableFooter {
+    flex-direction: column;
+    .pagination {
+      margin-top: 10px;
+      width: 100%;
+    }
   }
 }

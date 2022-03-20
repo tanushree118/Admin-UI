@@ -2,63 +2,93 @@ import React, { useEffect, useState } from "react";
 import AdminUITable from "./admin-ui";
 import { TextField } from "@mui/material";
 import styles from "./App.module.scss";
+import apiCall from "./utils/api-call";
 
 const url =
   "https://geektrust.s3-ap-southeast-1.amazonaws.com/adminui-problem/members.json";
 
+const data = {
+  method: "GET",
+};
 const App = () => {
   const [tableData, setTableData] = useState([]);
-  const [editedTableData, setEditedTableData] = useState([]);
-  const [isActionDisabled, setIsActionDisabled] = useState(false);
+  const [searchText, setSearchText] = useState("");
   const [page, setPage] = useState(0);
-  useEffect(() => {
-    apiCall(url, data);
+  const [globalSelected, setGlobalSelected] = useState(false);
+  
+  useEffect(async () => {
+    const result = await (apiCall(url, data));
+    setTableData(result);
   }, []);
-  const data = {
-    method: "GET",
-  };
-  const apiCall = async (url) => {
-    const apiResult = await fetch(url, data).then((response) =>
-      response.json()
-    );
-    setEditedTableData(apiResult?.map((row) => ({ ...row, checked: false })));
-    setTableData(apiResult?.map((row) => ({ ...row, checked: false })));
-  };
-
-  const handleSearch = (event) => {
-    const searchText = (event.target.value).toLowerCase();
-    let filteredTableData = editedTableData?.filter((row) => {
+  useEffect(() => {
+    const rowsPerPage = 10;
+    let updatedTableData = filteredTableData?.filter((row) => {
       if (
-        row.name?.toLowerCase().includes(searchText) ||
-        row.email?.toLowerCase().includes(searchText) ||
-        row.role?.toLowerCase().includes(searchText)
+        row?.name.toLowerCase().includes(searchText) ||
+        row?.email.toLowerCase().includes(searchText) ||
+        row?.role.toLowerCase().includes(searchText)
       ) {
         return { ...row };
       }
     });
-    if (searchText === "") {
-      setTableData(editedTableData);
-      setIsActionDisabled(false);
-    } else {
-      setTableData(filteredTableData);
-      setIsActionDisabled(true);
+    let count = 0;
+    for (
+      let i = page * rowsPerPage;
+      i < page * rowsPerPage + rowsPerPage;
+      i++
+    ) {
+      if (updatedTableData[i]?.checked) {
+        count++;
+      }
     }
+    if (updatedTableData?.length !== 0) {
+      if (
+        count ===
+          (updatedTableData?.length > rowsPerPage
+            ? updatedTableData.length / rowsPerPage
+            : updatedTableData.length) ||
+        count === rowsPerPage
+      ) {
+        setGlobalSelected(true);
+      } else {
+        setGlobalSelected(false);
+      }
+    }
+  }, [searchText]);
+
+  const handleSearch = (event) => {
+    const text = event.target.value?.toLowerCase();
+    setSearchText(text);
     setPage(0);
   };
+
+  let filteredTableData = tableData?.filter((row) => {
+    if (
+      row?.name.toLowerCase().includes(searchText) ||
+      row?.email.toLowerCase().includes(searchText) ||
+      row?.role.toLowerCase().includes(searchText)
+    ) {
+      return { ...row };
+    }
+  });
+
   return (
     <div className={styles.adminTable}>
       <TextField
         placeholder={"Search by name, email or role"}
         className={styles.searchBar}
         onChange={(event) => handleSearch(event)}
+        value={searchText}
       />
       <AdminUITable
         page={page}
         setPage={setPage}
         tableData={tableData}
+        filteredTableData={filteredTableData}
         setTableData={setTableData}
-        setEditedTableData={setEditedTableData}
-        isActionDisabled={isActionDisabled}
+        searchText={searchText}
+        globalSelected={globalSelected}
+        setGlobalSelected={setGlobalSelected}
       />
     </div>
   );

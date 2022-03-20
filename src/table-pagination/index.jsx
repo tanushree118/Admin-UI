@@ -5,67 +5,66 @@ import styles from "./table-pagination.module.scss";
 const TablePagination = ({
   count,
   rowsPerPage,
-  page,
+  selectedPage,
   onPageChange,
-  showFirstButton,
-  showLastButton,
 }) => {
-  const pagesCount = Math.floor(count / rowsPerPage);
+  const pagesCount =
+    count % rowsPerPage
+      ? Math.floor(count / rowsPerPage) + 1
+      : count / rowsPerPage;
   const pagesArray = [];
-  for (let i = 0; i <= pagesCount; i++) {
+  for (let i = 0; i < pagesCount; i++) {
     pagesArray.push(i);
   }
   return (
     <div className={styles.pagination}>
-      {showFirstButton ? (
-        <Button
-          className={`${page === 0 ? styles.disabled : styles.button}`}
-          onClick={(event) => onPageChange(event, 0)}
-          disabled={page === 0}
-        >
-          {"<<"}
-        </Button>
-      ) : (
-        ""
-      )}
       <Button
-        className={`${page === 0 ? styles.disabled : styles.button}`}
-        onClick={(event) => onPageChange(event, page - 1)}
-        disabled={page === 0}
+        className={`${
+          selectedPage === 0 && styles.disabled || styles.button
+        }`}
+        onClick={(event) => onPageChange(event, 0)}
+        disabled={selectedPage === 0}
+      >
+        {"<<"}
+      </Button>
+      <Button
+        className={`${selectedPage === 0 && styles.disabled || styles.button}`}
+        onClick={(event) => onPageChange(event, selectedPage - 1)}
+        disabled={selectedPage === 0}
       >
         {"<"}
       </Button>
-      {pagesArray?.map((row, index) => {
+      {pagesArray?.map((page, index) => {
         return (
           <Button
             key={index}
             className={`${
-              page === row ? `${styles.buttonSelected}` : styles.button
+              selectedPage === page ? styles.buttonSelected : styles.button
             }`}
-            onClick={(event) => onPageChange(event, row)}
+            onClick={(event) => onPageChange(event, page)}
           >
-            {row + 1}
+            {page + 1}
           </Button>
         );
       })}
       <Button
-        className={`${page === pagesCount ? styles.disabled : styles.button}`}
-        onClick={(event) => onPageChange(event, page + 1)}
-        disabled={page === pagesCount}
+        className={`${
+          selectedPage === pagesCount - 1 ? styles.disabled : styles.button
+        }`}
+        onClick={(event) => onPageChange(event, selectedPage + 1)}
+        disabled={selectedPage === pagesCount - 1}
       >
         {">"}
       </Button>
-      {showLastButton ? (
-        <Button
-          className={`${page === pagesCount ? styles.disabled : styles.button}`}
-          onClick={(event) => onPageChange(event, pagesCount)}
-          disabled={page === pagesCount}
-        >
-          {">>"}
-        </Button>
-      ) : (
-        ""
-      )}
+      <Button
+        className={`${
+          selectedPage === pagesCount - 1 ? styles.disabled : styles.button
+        }`}
+        onClick={(event) => onPageChange(event, pagesCount - 1)}
+        disabled={selectedPage === pagesCount - 1}
+      >
+        {">>"}
+      </Button>
     </div>
   );
 };
